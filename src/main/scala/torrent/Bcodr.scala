@@ -17,7 +17,7 @@ object Bcodr {
     		= stream match {
         case s if (s.isEmpty) => acc
         case ch #:: _ => {
-            val ch:Char = stream.take(1).toList(0)
+            stream.drop(1) // ch
             ch match {
                 // end of a list or dictionary 
                 case e if (e == 'e') => acc

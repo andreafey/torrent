@@ -1,39 +1,21 @@
 package torrent
 
 import Bcodr.bencode
+import java.io.FileInputStream
+import scala.io.Source
 
-class Metafile(metamap:Map[String, Any], encoded:String) {
+class Metafile(val metamap:Map[String, Any], val encoded:String) {
     def this(metamap:Map[String,Any]) = this(metamap, bencode(metamap))
-    
-	def this(encoded:String) = {
-	    // cast
-        // TODO asInstanceOf not supposed to be ideal, but can't get around this in the constructor
-	    this(Bcodr.bdecode(encoded.toStream)(0).asInstanceOf[(Map[String,Any])], encoded)
-	}
-//	
 //	def this(encoded:String) = {
 //	    // cast
-//	    Map[String,Any] meta = Bcodr.bdecode(encoded.toStream)(0) match {
-//	        case map:Map[String,Any] => map
-//	        case _ => throw new IllegalArgumentException("invalid encoding")
-//	    }
-//	    this(meta)
+//	    this(Bcodr.bdecode(encoded.toStream)(0).asInstanceOf[(Map[String,Any])], encoded)
 //	}
-//    def this(encoded:String)  = {
-//        val mymap = Bcodr.bdecode(encoded.toStream)(0)
-//        mymap match {
-//            case m:Map[String,Any] => println("good")
-//            case _ => throw new IllegalArgumentException("invalid encoding")
-//        }
-//        this(mymap, encoded)
-//    }
-//    def this(encoded:String) = {
-//        this(extract(encoded), encoded)
-//    }
-//    private def extract(encoded:String):Map[String,Any] = Bcodr.bdecode(encoded.toStream)(0) match {
-//        case m:Map[String,Any] => m
-//        case _ => throw new IllegalArgumentException("invalid encoding")
-//    }
+    def this(file:String) = {
+        this(Bcodr.bdecode(Source.fromFile(file).map(_.toChar).toStream)(0) match {
+	        case m:Map[String,Any] => m
+	        case _ => throw new IllegalArgumentException("invalid encoding")
+	    })
+    }
 	
 	def encode = bencode(metamap)
 	/* REQUIRED */
@@ -43,7 +25,8 @@ class Metafile(metamap:Map[String, Any], encoded:String) {
 	    case _ => throw new ClassCastException
 	}
 	// announce URL of the tracker
-	val announce = metamap("announce")
+	// TODO this is supposedly required but not found in test files
+	val announce = metamap.getOrElse("announce", None)
 	val multifile = info.contains("files")
 	
 	// TODO is this really space separated?
@@ -54,7 +37,8 @@ class Metafile(metamap:Map[String, Any], encoded:String) {
 	}
 	// pieces is SHA1 not urlencoded
 	// pieces is the concatenated 20 Byte SHA1 hashes of each piece
-	val pieces:String = metamap("pieces") match {
+	// TODO this does not seem to be what I expected - looks like binary data
+	val pieces:String = info("pieces") match {
 	    case s:String => s
 	    case _ => throw new ClassCastException
 	}
@@ -141,6 +125,11 @@ class Metafile(metamap:Map[String, Any], encoded:String) {
         case _ => throw new ClassCastException
     }
     
-    class FileSpec(length:Int, dir:Option[String], path:Option[String] = None, md5sum:Option[String] = None)
+    class FileSpec(val length:Int, val dir:Option[String], val path:Option[String] = None, val md5sum:Option[String] = None) {
+        override def toString = {
+            val map = Map("dir" -> dir, "path" -> path, "md5sum" -> md5sum)
+            "[FileSpec] len=" + length + (map.filter {case (k,v) => v.isDefined}).mkString
+        }
+    }
 
 }
