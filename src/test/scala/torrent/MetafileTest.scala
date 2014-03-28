@@ -6,7 +6,6 @@ import scala.io.Source
 
 class MetafileTest extends FlatSpec {
     val testheader = "src/test/resources/nbr6header-only.torrent"
-//    val testfile1 = "src/test/resources/Python programming nbr 6.torrent"
     val testfile2 = "src/test/resources/bestbasstest.torrent"
     val testfile3 = "src/test/resources/sky.torrent"
     
@@ -49,11 +48,11 @@ class MetafileTest extends FlatSpec {
         assertResult("SKYLAB VOL 2 [Instrumentals] 10 dope beats produced by RAZPRO MERRY CHRISTMAS  HAPPY NEW YEAR")(mf3.info("name"))
         assertResult(1048576)(mf3.pieceLength)
         val files3 = mf3.files
-        assertResult(20)(files.length)
-        assertResult("SKYLAB VOL 2 Instrumentals12:going to.mp3")(files3(4).path)
-        assertResult("Auto-generated torrent by Mininova.org CD")(mf3.comment)
+        assertResult(20)(files3.length)
+        assertResult(Some("SKYLAB VOL 2 Instrumentals/going to.mp3"))(files3(4).path)
+        assertResult(Some("Auto-generated torrent by Mininova.org CD"))(mf3.comment)
         assertResult(1048576)(mf3.pieceLength)
-        assertResult(1387881974)(mf3.creationDate)
+        assertResult(Some(1387881974))(mf3.creationDate)
     }
     "bencode" should "correctly encode Metafile" in {
         val mf = new Metafile(testfile2)

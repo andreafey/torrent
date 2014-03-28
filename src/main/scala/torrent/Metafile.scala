@@ -3,15 +3,16 @@ package torrent
 import Bcodr.bencode
 import java.io.FileInputStream
 import scala.io.Source
+import com.typesafe.scalalogging.slf4j.Logging
 
-class Metafile(val metamap:Map[String, Any], val encoded:String) {
+class Metafile(val metamap:Map[String, Any], val encoded:String) extends Logging {
     def this(metamap:Map[String,Any]) = this(metamap, bencode(metamap))
 //	def this(encoded:String) = {
 //	    // cast
 //	    this(Bcodr.bdecode(encoded.toStream)(0).asInstanceOf[(Map[String,Any])], encoded)
 //	}
     def this(file:String) = {
-        this(Bcodr.bdecode(Source.fromFile(file).map(_.toChar).toStream)(0) match {
+        this(Bcodr.bdecode(Source.fromFile(file)(io.Codec("ISO-8859-1")).map(_.toChar).toStream)(0) match {
 	        case m:Map[String,Any] => m
 	        case _ => throw new IllegalArgumentException("invalid encoding")
 	    })
@@ -21,8 +22,9 @@ class Metafile(val metamap:Map[String, Any], val encoded:String) {
 	/* REQUIRED */
 //	info: a dictionary that describes the file(s) of the torrent.
 	def info = metamap("info") match {
-		case i: Map[String, Any] => i
-	    case _ => throw new ClassCastException
+		case i: Map[String, Any] => { logger.trace("in info: " + i)
+		    i }
+	    case e => throw new ClassCastException("expected Map, got " + e)
 	}
 	// announce URL of the tracker
 	// TODO this is supposedly required but not found in test files
@@ -33,14 +35,14 @@ class Metafile(val metamap:Map[String, Any], val encoded:String) {
 	// number of bytes in each piece; often 256, 512, or 1024 (not recommended for small torrents)
 	val pieceLength:Int = info("piece length") match {
 	    case i:Int => i
-	    case _ => throw new ClassCastException
+	    case e => throw new ClassCastException("expected Int, got " + e)
 	}
 	// pieces is SHA1 not urlencoded
 	// pieces is the concatenated 20 Byte SHA1 hashes of each piece
 	// TODO this does not seem to be what I expected - looks like binary data
 	val pieces:String = info("pieces") match {
 	    case s:String => s
-	    case _ => throw new ClassCastException
+	    case e => throw new ClassCastException("expected String, got " + e)
 	}
     
     /* FILES */
@@ -52,7 +54,7 @@ class Metafile(val metamap:Map[String, Any], val encoded:String) {
         info("files") match {
             case l:List[Map[String,Any]] =>
                 l map (m => new FileSpec(length(m), name, path(m), md5lookup(m)))
-            case _ => throw new ClassCastException
+            case e => throw new ClassCastException("expected List[Map[String,Any]], got " + e)
         }
     } else {
         List(new FileSpec(length(metamap), None, name, md5lookup(metamap)))
@@ -64,21 +66,21 @@ class Metafile(val metamap:Map[String, Any], val encoded:String) {
 	    info("private") match {
 	        case 1 => true
 	        case 0 => false
-	        case _ => throw new IllegalStateException
+	        case e => throw new IllegalStateException("expected 0 or 1, got " + e)
 	    }
 	} else false
 
 //  this is an extention to the official specification,
 //  offering backwards-compatibility..
-	val announceList = metamap.getOrElse("announce-list", None) match {
+	val announceList:Option[List[List[String]]] = metamap.getOrElse("announce-list", None) match {
 	    case None => None
 	    case l:List[List[String]] => Some(l)
-        case _ => throw new ClassCastException
+	    case e => throw new ClassCastException("expected List[List[String]], got " + e)
 	}
 	
 //  the creation time of the torrent, in standard UNIX epoch 
 //  format (integer, seconds since 1-Jan-1970 00:00:00 UTC)
-	val creationDate = metamap.getOrElse("creation-date", None) match {
+	val creationDate = metamap.getOrElse("creation date", None) match {
 	    case None => None
 	    case l:Int => Some(l)
         case _ => throw new ClassCastException
@@ -90,11 +92,19 @@ class Metafile(val metamap:Map[String, Any], val encoded:String) {
         case _ => throw new ClassCastException
     }
 //  name and version of the program used to create the .torrent (string)
-    val createdBy = metamap.getOrElse("createdBy", None)
+    val createdBy = metamap.getOrElse("createdBy", None) match {
+	    case None => None
+	    case l:Int => Some(l)
+        case _ => throw new ClassCastException
+	}
 
 //  the string encoding format used to generate the pieces part
 //  of the info dictionary in the .torrent metafile (string)
-    val encoding = metamap.getOrElse("encoding", None)
+    val encoding = metamap.getOrElse("encoding", None) match {
+	    case None => None
+	    case l:String => Some(l)
+        case _ => throw new ClassCastException
+    }
 	
 	    
 	/* PRIVATE FUNCTIONS */
