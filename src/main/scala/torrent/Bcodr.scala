@@ -27,19 +27,17 @@ object Bcodr {
             case 'e' => acc
             // beginning of an Int
             case 'i' => {
-                val numStr = chs.takeWhile(p => 'e' != p).mkString
-                val (num, len) = (numStr.toInt, numStr.length)
-                // pull the e off the stream
-                bdecode(stream.splitAt(2 + len)._2, acc += num)
+                val num = chs.takeWhile(p => 'e' != p).mkString
+                // len + 1 pulls the e off the end
+                bdecode(chs.splitAt(num.length + 1)._2, acc += num.toInt)
             }
             // beginning of a list
             case 'l' => {
                 // drop l and get a sublist ending at outer 'e'
                 val list = bdecode(chs, ListBuffer()).toList
-                val bytes = size(list)
-                bdecode(stream.drop(bytes), acc += list)
+                bdecode(stream.drop(size(list)), acc += list)
             }
-            // you are at the beginning of a dictionary
+            // beginning of a dictionary
             case 'd' => {
                 // drop d and get a sublist ending at outer 'e'
                 val list = bdecode(chs, ListBuffer()).toList
@@ -48,8 +46,6 @@ object Bcodr {
                 val bytes = size(map)
                 bdecode(stream.drop(bytes), acc += map)
             }
-            // list of keys and values while processing a map
-            case ':' => bdecode(chs, acc)
             case _ => throw new IllegalArgumentException("unmatched char in bdecode")
         }
     }
