@@ -4,7 +4,17 @@ import org.scalatest._
 import org.scalatest.Assertions.assertResult
 import scala.io.Source
 
-class MetafileTest extends FlatSpec {
+
+import org.scalatest._
+import org.scalatest.Assertions.assertResult
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.FunSuite
+import org.scalatest.Matchers
+import torrent.Bcodr._
+
+@RunWith(classOf[JUnitRunner])
+class MetafileTest extends FunSuite {
     val testheader = "src/test/resources/nbr6header-only.torrent"
     val testfile2 = "src/test/resources/bestbasstest.torrent"
     val testfile3 = "src/test/resources/sky.torrent"
@@ -30,7 +40,7 @@ class MetafileTest extends FlatSpec {
 //     4:name93:SKYLAB VOL 2 [Instrumentals] 10 dope beats produced by RAZPRO MERRY CHRISTMAS  HAPPY NEW YEAR
 //        12:piece lengthi1048576e
 //     6:pieces3540
-    "Metafile(file)" should "create an object with known values" in {
+    test("Metafile(file) should create an object with known values") {
         val mf2 = new Metainfo(testfile2);
         val files = mf2.files
         // file itself plus minnova distribution info file
@@ -54,7 +64,7 @@ class MetafileTest extends FlatSpec {
         assertResult(1048576)(mf3.pieceLength)
         assertResult(Some(1387881974))(mf3.creationDate)
     }
-    "bencode" should "correctly encode Metafile" in {
+    test("bencode should correctly encode Metafile") {
         val mf = new Metainfo(testfile2)
         val encoded = Bcodr.bencode(mf.metamap)
         assertResult(mf.encoded)(encoded)

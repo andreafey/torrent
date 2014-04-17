@@ -5,6 +5,7 @@ import collection.mutable.ListBuffer
 object Bcodr {
     /**
      * Returns a List containing Strings, Ints, Lists or Maps[String,Any]
+     * Any<|BcodeAny where BcodeAny in Int, String, List[BcodeAny], Map[String,BcodeAny]
      * 3:abc => "abc" (where # is the length of the string)
      * i123e => 123
      * li123e3:abc => List(123, "abc)
@@ -14,45 +15,47 @@ object Bcodr {
     def bdecode(string:String):Any = bdecode(string.toStream, ListBuffer()).toList(0)
     private def bdecode(stream:Stream[Char], acc:ListBuffer[Any]):ListBuffer[Any] = stream match {
         case s if (s.isEmpty) => acc
-        case ch #:: _ => ch match {
+        case ch #:: chs => ch match {
             // beginning of a String
             case n if (n.isDigit) => {
-                val countStr = stream.takeWhile(p => ':' != p).mkString
-                val (_, tail) = stream.splitAt(countStr.length + 1)
-                val (str, tail2) = tail.splitAt(countStr.toInt)
-                bdecode(tail2, acc += str.mkString)
+                val strlen = stream.takeWhile(p => ':' != p).mkString
+        		// length + 1 because next char is ':'
+                val (str, next) = stream.drop(strlen.length + 1).splitAt(strlen.toInt)
+                bdecode(next, acc += str.mkString)
             }
             // end of a list or dictionary 
             case 'e' => acc
             // beginning of an Int
             case 'i' => {
-                val numStr = stream.tail.takeWhile(p => 'e' != p).mkString
-                val (num, len) = (Integer.parseInt(numStr), numStr.length)
+                val numStr = chs.takeWhile(p => 'e' != p).mkString
+                val (num, len) = (numStr.toInt, numStr.length)
                 // pull the e off the stream
                 bdecode(stream.splitAt(2 + len)._2, acc += num)
             }
             // beginning of a list
             case 'l' => {
                 // drop l and get a sublist ending at outer 'e'
-                val list = bdecode(stream.tail, ListBuffer()).toList
+                val list = bdecode(chs, ListBuffer()).toList
                 val bytes = size(list)
                 bdecode(stream.drop(bytes), acc += list)
             }
             // you are at the beginning of a dictionary
             case 'd' => {
                 // drop d and get a sublist ending at outer 'e'
-                val list = bdecode(stream.tail, ListBuffer()).toList
+                val list = bdecode(chs, ListBuffer()).toList
+                // convert each consecutive pair in the list to a key -> value pair
                 val map:Map[String,Any] = list.sliding(2, 2).collect{case List(a,b) => (a.toString,b)}.toMap
                 val bytes = size(map)
                 bdecode(stream.drop(bytes), acc += map)
             }
-            // this happens when you are getting a list of keys and values while processing a map
-            case ':' => bdecode(stream.tail, acc)
-            case wha => throw new IllegalArgumentException("unmatched char in bdecode")
+            // list of keys and values while processing a map
+            case ':' => bdecode(chs, acc)
+            case _ => throw new IllegalArgumentException("unmatched char in bdecode")
         }
     }
     /**
      * Determines the number of characters required to represent an item
+     * Any<|BcodeAny where BcodeAny in Int, String, List[BcodeAny], Map[String,BcodeAny]
      * 3:abc => "abc" (where # is the length of the string)
      * i123e => 123
      * li123e3:abc => List(123, "abc)

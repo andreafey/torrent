@@ -9,7 +9,8 @@ libraryDependencies ++= Seq(
     "org.jvnet.mimepull" % "mimepull" % "1.7",
     "org.scalatest" % "scalatest_2.10" % "2.0" % "test",
     "com.typesafe" % "scalalogging-slf4j_2.10" % "1.1.0",
-    "org.slf4j" % "slf4j-log4j12" % "1.7.6"
+    "org.slf4j" % "slf4j-log4j12" % "1.7.6",
+    "junit" % "junit" % "4.8.1" % "test"
 )
 
 resolvers += "spray repo" at "http://repo.spray.io"

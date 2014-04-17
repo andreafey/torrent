@@ -2,10 +2,15 @@ package torrent
 
 import org.scalatest._
 import org.scalatest.Assertions.assertResult
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.FunSuite
+import org.scalatest.Matchers
 import torrent.Bcodr._
 
-class BcodrTest extends FlatSpec {
-    "bencode/bdecode" should "correctly encode/decode an Int" in {
+@RunWith(classOf[JUnitRunner])
+class BcodrTest extends FunSuite {
+    test("bencode/bdecode should correctly encode/decode an Int") {
         var encoded = "i123e"
         var decoded = 123
         assertResult(decoded)(bdecode(encoded))
@@ -27,10 +32,10 @@ class BcodrTest extends FlatSpec {
         assertResult(encoded)(bencode(decoded))
     }
     
-    "bencode/bdecode" should "correctly encode/decode a String" in {
+    test("bencode/bdecode should correctly encode/decode a String") {
     	// multidigit word length
-        var encoded = "17:the rain in spain"
-        var decoded = "the rain in spain"
+        var encoded:String = "17:the rain in spain"
+        var decoded:String = "the rain in spain"
         assertResult(decoded)(bdecode(encoded))
         assertResult(encoded)(bencode(decoded))
         // single digit word length
@@ -49,7 +54,7 @@ class BcodrTest extends FlatSpec {
         assertResult(encoded)(bencode(decoded))
     }
     
-    "bencode/bdecode" should "correctly encode/decode a List" in {
+    test("bencode/bdecode should correctly encode/decode a List") {
         var encoded = "l3:fooe"
         var decoded:List[Any] = List("foo")
         assertResult(decoded)(bdecode(encoded))
@@ -61,7 +66,7 @@ class BcodrTest extends FlatSpec {
         assertResult(encoded)(bencode(decoded))
     }
     
-    "bencode/bdecode" should "correctly encode/decode a dictionary" in {
+    test("bencode/bdecode should correctly encode/decode a dictionary") {
         var encoded = "d3:fooi123ee"
         var decoded:Map[String,Any] = Map("foo" -> 123)
         assertResult(decoded)(bdecode(encoded))
@@ -91,7 +96,7 @@ class BcodrTest extends FlatSpec {
         assertResult(encoded)(bencode(decoded))
     }
     
-    "bencode/bdecode" should "correctly encode/decode nested dictionaries" in {
+    test("bencode/bdecode should correctly encode/decode nested dictionaries") {
         // nested dicts, lists
         var encoded = "d4:listl4:whoai123ee3:mapd3:bar3:cow3:fooi123eee"
         var decoded:Map[String,Any] = Map("map" -> Map("foo" -> 123, "bar" -> "cow"),
