@@ -9,12 +9,14 @@ bin/
 ### Scala ###
 *.class
 *.log
+*.sc
 
 # sbt specific
 .cache/
 .history/
 .lib/
 dist/*
+logs/
 target/
 lib_managed/
 src_managed/

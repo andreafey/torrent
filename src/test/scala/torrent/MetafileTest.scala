@@ -31,7 +31,7 @@ class MetafileTest extends FlatSpec {
 //        12:piece lengthi1048576e
 //     6:pieces3540
     "Metafile(file)" should "create an object with known values" in {
-        val mf2 = new Metafile(testfile2);
+        val mf2 = new Metainfo(testfile2);
         val files = mf2.files
         // file itself plus minnova distribution info file
         assertResult(2)(files.length)
@@ -43,7 +43,7 @@ class MetafileTest extends FlatSpec {
         assertResult(expectedName)(mf2.info("name"))
         assertResult(1048576)(mf2.pieceLength)
         
-        val mf3 = new Metafile(testfile3)
+        val mf3 = new Metainfo(testfile3)
         assertResult("http://tracker.mininova.org/announce")(mf3.announce)
         assertResult("SKYLAB VOL 2 [Instrumentals] 10 dope beats produced by RAZPRO MERRY CHRISTMAS  HAPPY NEW YEAR")(mf3.info("name"))
         assertResult(1048576)(mf3.pieceLength)
@@ -55,7 +55,7 @@ class MetafileTest extends FlatSpec {
         assertResult(Some(1387881974))(mf3.creationDate)
     }
     "bencode" should "correctly encode Metafile" in {
-        val mf = new Metafile(testfile2)
+        val mf = new Metainfo(testfile2)
         val encoded = Bcodr.bencode(mf.metamap)
         assertResult(mf.encoded)(encoded)
     }

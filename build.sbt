@@ -4,8 +4,9 @@ scalaVersion := "2.10.2"
 
 libraryDependencies ++= Seq(
     "io.spray" % "spray-can" % "1.3.1",
-    // TODO is this redundant?
     "com.typesafe.akka" %% "akka-actor" % "2.3.0",
+    "io.spray" % "spray-routing" % "1.3.1",
+    "org.jvnet.mimepull" % "mimepull" % "1.7",
     "org.scalatest" % "scalatest_2.10" % "2.0" % "test",
     "com.typesafe" % "scalalogging-slf4j_2.10" % "1.1.0",
     "org.slf4j" % "slf4j-log4j12" % "1.7.6"

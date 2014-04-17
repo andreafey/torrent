@@ -5,15 +5,11 @@ import java.io.FileInputStream
 import scala.io.Source
 import com.typesafe.scalalogging.slf4j.Logging
 
-class Metafile(val metamap:Map[String, Any], val encoded:String) extends Logging {
+class Metainfo(val metamap:Map[String, Any], val encoded:String) extends Logging {
     def this(metamap:Map[String,Any]) = this(metamap, bencode(metamap))
-//	def this(encoded:String) = {
-//	    // cast
-//	    this(Bcodr.bdecode(encoded.toStream)(0).asInstanceOf[(Map[String,Any])], encoded)
-//	}
     def this(file:String) = {
-        this(Bcodr.bdecode(Source.fromFile(file)(io.Codec("ISO-8859-1")).map(_.toChar).toStream)(0) match {
-	        case m:Map[String,Any] => m
+        this(Bcodr.bdecode(Source.fromFile(file)(io.Codec("ISO-8859-1")).toStream) match {
+	        case m:Map[String @unchecked, _] => m
 	        case _ => throw new IllegalArgumentException("invalid encoding")
 	    })
     }
@@ -22,7 +18,7 @@ class Metafile(val metamap:Map[String, Any], val encoded:String) extends Logging
 	/* REQUIRED */
 //	info: a dictionary that describes the file(s) of the torrent.
 	def info = metamap("info") match {
-		case i: Map[String, Any] => { logger.trace("in info: " + i)
+		case i: Map[String @unchecked, _] => { logger.trace("in info: " + i)
 		    i }
 	    case e => throw new ClassCastException("expected Map, got " + e)
 	}
@@ -52,7 +48,7 @@ class Metafile(val metamap:Map[String, Any], val encoded:String) extends Logging
 	 */
     def files:List[FileSpec] = if (multifile) {
         info("files") match {
-            case l:List[Map[String,Any]] =>
+            case l:List[Map[String,Any] @unchecked] =>
                 l map (m => new FileSpec(length(m), name, path(m), md5lookup(m)))
             case e => throw new ClassCastException("expected List[Map[String,Any]], got " + e)
         }
@@ -74,7 +70,7 @@ class Metafile(val metamap:Map[String, Any], val encoded:String) extends Logging
 //  offering backwards-compatibility..
 	val announceList:Option[List[List[String]]] = metamap.getOrElse("announce-list", None) match {
 	    case None => None
-	    case l:List[List[String]] => Some(l)
+	    case l:List[List[String] @unchecked] => Some(l) // note if any other kind of list, this will still match
 	    case e => throw new ClassCastException("expected List[List[String]], got " + e)
 	}
 	
@@ -105,7 +101,6 @@ class Metafile(val metamap:Map[String, Any], val encoded:String) extends Logging
 	    case l:String => Some(l)
         case _ => throw new ClassCastException
     }
-	
 	    
 	/* PRIVATE FUNCTIONS */
 	// length of a file in bytes (single file only)
@@ -131,7 +126,7 @@ class Metafile(val metamap:Map[String, Any], val encoded:String) extends Logging
         map.getOrElse("path", None) match {
         case None => None
         // TODO replace with path separator
-        case l:List[String] => Some(l.reduceLeft(_ + "/" + _))
+        case l:List[String @unchecked] => Some(l.reduceLeft(_ + "/" + _))
         case _ => throw new ClassCastException
     }
     
