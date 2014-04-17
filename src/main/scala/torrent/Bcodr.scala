@@ -1,6 +1,5 @@
 package torrent
 
-import annotation.tailrec
 import collection.mutable.ListBuffer
 
 object Bcodr {
@@ -52,7 +51,6 @@ object Bcodr {
             case wha => throw new IllegalArgumentException("unmatched char in bdecode")
         }
     }
-
     /**
      * Determines the number of characters required to represent an item
      * 3:abc => "abc" (where # is the length of the string)
@@ -89,7 +87,7 @@ object Bcodr {
             val keys:List[String] = m.keys.toList.sorted
             keys.foldLeft(acc + "d")((a, k) => bencode(k, a) + bencode(m(k))) + "e"
         }
-        case _ => throw new IllegalArgumentException("item must be in (Int, String, List, Map[String,Any]")
+        case _ => throw new IllegalArgumentException("item must be in (Int, String, List, Map[String,_]")
     }
 
 }
